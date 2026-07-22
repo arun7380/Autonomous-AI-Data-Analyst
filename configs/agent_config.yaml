@@ -1,0 +1,60 @@
+agents:
+  orchestrator:
+    provider: "google"
+    model: "gemini-1.5-pro"
+    temperature: 0.1
+    max_tokens: 2000
+    recursion_limit: 25
+
+  dataset_understanding:
+    provider: "google"
+    model: "gemini-1.5-flash"
+    temperature: 0.0
+    sample_rows: 100
+
+  cleaning:
+    provider: "google"
+    model: "gemini-1.5-flash"
+    temperature: 0.0
+    outlier_method: "iqr"  # 'iqr' or 'zscore'
+    outlier_threshold: 1.5
+
+  eda:
+    provider: "google"
+    model: "gemini-1.5-flash"
+    temperature: 0.2
+    max_correlation_features: 30
+
+  visualization:
+    provider: "google"
+    model: "gemini-1.5-pro"
+    temperature: 0.1
+    default_theme: "plotly_dark"
+
+  machine_learning:
+    provider: "google"
+    model: "gemini-1.5-pro"
+    temperature: 0.1
+    default_time_budget_sec: 120
+
+  sql:
+    provider: "google"
+    model: "gemini-1.5-pro"
+    temperature: 0.0
+    max_result_rows: 1000
+
+  insight_generation:
+    provider: "google"
+    model: "gemini-1.5-pro"
+    temperature: 0.4
+
+  report:
+    provider: "google"
+    model: "gemini-1.5-pro"
+    temperature: 0.3
+
+  reflection:
+    provider: "google"
+    model: "gemini-1.5-pro"
+    temperature: 0.0
+    max_retries: 3

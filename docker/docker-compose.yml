@@ -1,1 +1,113 @@
+version: '3.8'
 
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: analyst_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: analyst_user
+      POSTGRES_PASSWORD: analyst_password_secret
+      POSTGRES_DB: autonomous_analyst_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U analyst_user -d autonomous_analyst_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: analyst_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.backend
+    container_name: analyst_backend
+    restart: always
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=production
+      - DATABASE_URL=postgresql+asyncpg://analyst_user:analyst_password_secret@postgres:5432/autonomous_analyst_db
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - DEFAULT_LLM_PROVIDER=${DEFAULT_LLM_PROVIDER:-google}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - shared_uploads:/tmp/uploads
+      - shared_reports:/tmp/reports
+
+  celery_worker:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.celery
+    container_name: analyst_celery_worker
+    restart: always
+    command: celery -A app.tasks.celery_app worker --loglevel=info -c 4
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://analyst_user:analyst_password_secret@postgres:5432/autonomous_analyst_db
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - DEFAULT_LLM_PROVIDER=${DEFAULT_LLM_PROVIDER:-google}
+    depends_on:
+      - backend
+      - redis
+    volumes:
+      - shared_uploads:/tmp/uploads
+      - shared_reports:/tmp/reports
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.frontend
+    container_name: analyst_frontend
+    restart: always
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.11.3
+    container_name: analyst_mlflow
+    restart: always
+    command: mlflow server --backend-store-uri sqlite:////mlflow/mlflow.db --default-artifact-root /mlflow/artifacts --host 0.0.0.0 --port 5000
+    ports:
+      - "5000:5000"
+    volumes:
+      - mlflow_data:/mlflow
+
+volumes:
+  postgres_data:
+  redis_data:
+  mlflow_data:
+  shared_uploads:
+  shared_reports:

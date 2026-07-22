@@ -25,11 +25,13 @@ class Settings(BaseSettings):
     CELERY_BROKER_URL: str = "redis://localhost:6379/1"
     CELERY_RESULT_BACKEND: str = "redis://localhost:6379/2"
 
-    # AI Model API Keys
-    OPENAI_API_KEY: str = ""
-    ANTHROPIC_API_KEY: str = ""
-    DEFAULT_MODEL_NAME: str = "gpt-4o"
-    FAST_MODEL_NAME: str = "gpt-4o-mini"
+    # AI Model API Keys & Settings
+    GOOGLE_API_KEY: str = ""
+    GROQ_API_KEY: str = ""
+    DEFAULT_LLM_PROVIDER: str = "google"  # options: google, groq
+    DEFAULT_MODEL_NAME: str = "gemini-1.5-pro"
+    FAST_MODEL_NAME: str = "gemini-1.5-flash"
+    EMBEDDING_MODEL_NAME: str = "models/text-embedding-004"
 
     # File Storage
     UPLOAD_DIR: str = "/tmp/uploads"

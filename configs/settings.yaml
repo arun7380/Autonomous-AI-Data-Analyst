@@ -1,0 +1,32 @@
+app:
+  name: "Autonomous AI Data Analyst"
+  version: "1.0.0"
+  environment: "production"
+  debug: false
+  api_prefix: "/api/v1"
+
+server:
+  host: "0.0.0.0"
+  port: 8000
+  workers: 4
+  reload: false
+
+storage:
+  upload_dir: "/tmp/uploads"
+  reports_dir: "/tmp/reports"
+  export_dir: "/tmp/exports"
+  max_file_size_mb: 500
+  chunk_size_bytes: 4194304  # 4MB chunks for streaming ingest
+
+duckdb:
+  threads: 8
+  memory_limit: "4GB"
+  temp_directory: "/tmp/duckdb_temp"
+
+cors:
+  allow_origins:
+    - "http://localhost:3000"
+    - "http://127.0.0.1:3000"
+  allow_credentials: true
+  allow_methods: ["*"]
+  allow_headers: ["*"]

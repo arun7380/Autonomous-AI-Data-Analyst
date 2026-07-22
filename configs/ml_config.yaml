@@ -1,0 +1,30 @@
+ml:
+  optuna:
+    n_trials: 30
+    timeout_seconds: 300
+    sampler: "TPESampler"
+
+  models:
+    classification:
+      - "RandomForestClassifier"
+      - "XGBClassifier"
+      - "LGBMClassifier"
+      - "CatBoostClassifier"
+      - "LogisticRegression"
+    regression:
+      - "RandomForestRegressor"
+      - "XGBRegressor"
+      - "LGBMRegressor"
+      - "CatBoostRegressor"
+      - "LinearRegression"
+    clustering:
+      - "KMeans"
+      - "IsolationForest"
+
+  explainability:
+    shap_sample_size: 200
+    compute_permutation_importance: true
+
+  mlflow:
+    experiment_name: "autonomous_data_analyst_experiments"
+    artifact_location: "mlflow-artifacts"
